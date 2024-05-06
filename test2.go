@@ -61,7 +61,7 @@ func Test2() {
 	file := xlsx.NewFile()
 	sheet, err := file.AddSheet("Data")
 	if err != nil {
-		fmt.Printf("Failed to create sheet: %s\n", err)
+		fmt.Printf("Failed t create sheet: %s\n", err)
 		return
 	}
 
