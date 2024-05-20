@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -12,50 +13,51 @@ import (
 )
 
 var (
-	data string = `Fairfield Inn & Suites Los Angeles LAX/El Segundo
+	/* data string = `Fairfield Inn & Suites Los Angeles LAX/El Segundo
 
-FLEXIBLE RATE GUEST ROOM 1 KING.
+	FLEXIBLE RATE GUEST ROOM 1 KING.
 
-Thu, May 9, 2024 – Mon, May 13, 2024
-2 travelers | 1 room | 4 nights
+	Thu, May 9, 2024 – Mon, May 13, 2024
+	2 travelers | 1 room | 4 nights
 
-Room description
-1 King bed
-Mini fridge
-255 square feet/23 square meters
-Wireless internet
-Complimentary coffee/tea maker
-Maximum occupancy of 2 guests
+	Room description
+	1 King bed
+	Mini fridge
+	255 square feet/23 square meters
+	Wireless internet
+	Complimentary coffee/tea maker
+	Maximum occupancy of 2 guests
 
-Rate details
-A00Rega: Flexible Rate Guest Room 1 King
+	Rate details
+	A00Rega: Flexible Rate Guest Room 1 King
 
-Cancellation policy
-Refundable until May 7, 2024
-* 178.08 usd cancel fee person room cancellation permitted up to 1 days before arrival.
+	Cancellation policy
+	Refundable until May 7, 2024
+	* 178.08 usd cancel fee person room cancellation permitted up to 1 days before arrival.
 
-Nightly rate
-Night 1 (2024-05-09)     $159.00
-Night 2 (2024-05-10)     $174.00
-Night 3 (2024-05-11)     $164.00
-Night 4 (2024-05-12)     $159.00
+	Nightly rate
+	Night 1 (2024-05-09)     $159.00
+	Night 2 (2024-05-10)     $174.00
+	Night 3 (2024-05-11)     $164.00
+	Night 4 (2024-05-12)     $159.00
 
-Price details
-1 Room x 4 Nights     $656.00
-Taxes and Fees        $80.00
-Total USD             $736.00
-Including all known taxes and fees`
+	Price details
+	1 Room x 4 Nights     $656.00
+	Taxes and Fees        $80.00
+	Total USD             $736.00
+	Including all known taxes and fees` */
 
 	regexPrices          = regexp.MustCompile(`(\d+) Nights.*\$(\d+\.?\d*)`)
 	regexAfterCifraValue = regexp.MustCompile(`\$(\d+\.?\d*)`)
 )
 
-func Create() {
+func Create(data string) (*bytes.Buffer, error) {
 	file := xlsx.NewFile()
+
 	sheet, err := file.AddSheet("Data")
 	if err != nil {
 		fmt.Printf("Failed to create sheet: %s\n", err)
-		return
+		return nil, err
 	}
 
 	headerStyle := xlsx.NewStyle()
@@ -125,25 +127,25 @@ func Create() {
 	avgRate, err := avgRate(dataInsert[len(dataInsert)-1][1])
 	if err != nil {
 		fmt.Printf("Failed to create get avgRate: %s\n", err)
-		return
+		return nil, err
 	}
 
 	priceDetails := getSection(dataInsert, "Price details")
 	if priceDetails == nil {
 		fmt.Printf("[priceDetails == nil] There is no price details!!!")
-		return
+		return nil, err
 	}
 
 	rateDetails := getSection(dataInsert, "Rate details")
 	if priceDetails == nil {
 		fmt.Printf("[priceDetails == nil] There is no rate details!!!")
-		return
+		return nil, err
 	}
 
 	cancellationPolicy := getSection(dataInsert, "Cancellation policy")
 	if priceDetails == nil {
 		fmt.Printf("[priceDetails == nil] There is no cancellation policy!!!")
-		return
+		return nil, err
 	}
 
 	totalRateRoom := getRate(priceDetails[1])
@@ -204,10 +206,16 @@ func Create() {
 
 	if err = file.Save("structured_output.xlsx"); err != nil {
 		fmt.Printf("Failed to save file: %s\n", err)
-		return
+		return nil, err
+	}
+
+	var buffer bytes.Buffer
+	if err := file.Write(&buffer); err != nil {
+		return nil, err
 	}
 
 	fmt.Println("Excel file created successfully with structured data")
+	return &buffer, nil
 }
 
 func SetValueX(sheet *xlsx.Sheet, yInit int, xInit int, values ...string) {
