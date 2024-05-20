@@ -50,14 +50,7 @@ Including all known taxes and fees`
 	regexAfterCifraValue = regexp.MustCompile(`\$(\d+\.?\d*)`)
 )
 
-/* var teste [][]string = [][]string{
-	{"A", "B"},
-	{"C"},
-	{"D", "E"},
-	{"F", "G", "H", "I"},
-} */
-
-func Test2() {
+func Create() {
 	file := xlsx.NewFile()
 	sheet, err := file.AddSheet("Data")
 	if err != nil {
@@ -68,9 +61,31 @@ func Test2() {
 	headerStyle := xlsx.NewStyle()
 	headerStyle.Font = *xlsx.NewFont(12, "Arial")
 	headerStyle.Font.Bold = true
-	headerStyle.Fill = *xlsx.NewFill("solid", "00FFFF00", "FF000000")
-	headerStyle.Border = *xlsx.NewBorder("thin", "thin", "thin", "thin")
-	headerStyle.Alignment.Horizontal = "center"
+	headerStyle.Fill = *xlsx.NewFill("solid", "D9D9D9", "FF000000")
+	headerStyle.Alignment.Horizontal = "left"
+	headerStyle.ApplyFont = true
+	headerStyle.ApplyFill = true
+	headerStyle.ApplyBorder = true
+	headerStyle.ApplyAlignment = true
+
+	normalStyle := xlsx.NewStyle()
+	normalStyle.Font = *xlsx.NewFont(12, "Arial")
+	normalStyle.Border = *xlsx.NewBorder("thin", "thin", "thin", "thin")
+	normalStyle.Alignment.Horizontal = "center"
+	normalStyle.ApplyFont = true
+	normalStyle.ApplyBorder = true
+	normalStyle.ApplyAlignment = true
+
+	totalStyle := xlsx.NewStyle()
+	totalStyle.Font = *xlsx.NewFont(12, "Arial")
+	totalStyle.Fill = *xlsx.NewFill("solid", "FFC000", "FF000000")
+	totalStyle.Border = *xlsx.NewBorder("thin", "thin", "thin", "thin")
+	totalStyle.Alignment.Horizontal = "left"
+	totalStyle.Font.Bold = true
+	totalStyle.ApplyFont = true
+	totalStyle.ApplyFill = true
+	totalStyle.ApplyBorder = true
+	totalStyle.ApplyAlignment = true
 
 	dataInsert := make([][]string, 0)
 
@@ -155,9 +170,36 @@ func Test2() {
 	SetValueY(sheet, yInit+add+3, xInit, cancellationPolicy[0:]...)
 	SetValueY(sheet, yInit+add+3, xInit+1, rateDetails[0:]...)
 
-	for i := yInit; i < yInit+add; i++ {
+	for i := yInit; i < yInit+add-1; i++ {
+		style := *headerStyle
+		style.Border = *xlsx.NewBorder("medium", "thin", "thin", "thin")
+		if i == yInit {
+			style.Border = *xlsx.NewBorder("medium", "thin", "medium", "thin")
+		}
+
 		cell := sheet.Cell(i, xInit)
-		cell.SetStyle(headerStyle)
+		cell.SetStyle(&style)
+
+		styleB := *normalStyle
+		styleB.Border = *xlsx.NewBorder("thin", "medium", "thin", "thin")
+		if i == yInit {
+			styleB.Border = *xlsx.NewBorder("thin", "medium", "medium", "thin")
+		}
+
+		cellB := sheet.Cell(i, xInit+1)
+		cellB.SetStyle(&styleB)
+	}
+
+	for j := xInit; j < xInit+2; j++ {
+		style := *totalStyle
+		style.Border = *xlsx.NewBorder("medium", "thin", "thin", "medium")
+		if j == xInit+1 {
+			style.Border = *xlsx.NewBorder("thin", "medium", "thin", "medium")
+			style.Alignment.Horizontal = "center"
+		}
+
+		cell := sheet.Cell(yInit+add-1, j)
+		cell.SetStyle(&style)
 	}
 
 	if err = file.Save("structured_output.xlsx"); err != nil {
