@@ -180,7 +180,7 @@ func Create(data string) (*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	fmt.Println("Excel file created successfully with structured data")
+	fmt.Println("\n\nExcel file created successfully with structured data")
 	return &buffer, nil
 }
 

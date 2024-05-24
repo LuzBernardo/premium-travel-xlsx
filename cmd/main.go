@@ -43,13 +43,19 @@ Including all known taxes and fees` */
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Enter the data:")
+	fmt.Println("Enter the data (press Ctrl+D or Ctrl+Z to end):")
 
-	data, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input:", err)
-		return
+	var input string
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
+		input += line
 	}
 
-	src.Create(data)
+	_, err := src.Create(input)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+	}
 }
